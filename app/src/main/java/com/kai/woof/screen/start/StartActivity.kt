@@ -6,7 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -18,24 +21,24 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
-import com.google.gson.Gson
-import com.kai.woof.api.DogApiService
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.kai.woof.R
+import com.kai.woof.screen.quiz.QuizActivity
 import com.kai.woof.ui.theme.WoofTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 @AndroidEntryPoint
 class StartActivity : ComponentActivity() {
@@ -47,58 +50,48 @@ class StartActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WoofTheme {
-                var isLoading by remember { mutableStateOf(false) }
+                val isLoading = vm.isLoading().collectAsState()
                 val snackbarHostState = remember { SnackbarHostState() }
 
                 Scaffold(snackbarHost = {
                     SnackbarHost(hostState = snackbarHostState)
-                },modifier = Modifier.fillMaxSize()) { innerPadding ->
+                }, modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ErrorSnackBar(snackbarHostState)
 
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Button(onClick = {
-                            onStartClick()
-//                            isLoading = true
-//                            lifecycleScope.launch(Dispatchers.IO) {
-//                                val quiz = quizGenerator.generateQuiz()
-//                                isLoading = false
-//                                withContext(Dispatchers.Main) {
-//                                    startActivity(QuizActivity.newIntent(this@StartActivity, quiz))
-//                                }
-//                            }
-                        }) {
-                            Text("Start")
+                        Column {
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                            ) {
+                                LottieHome()
+
+                            }
+
+                            StartButton()
                         }
+
                     }
                     LoadingQuiz(isLoading)
                 }
             }
         }
 
-        val gson = Gson()
-        val okHttpClient = OkHttpClient()
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://dog.ceo/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-
-        val dogApiService = retrofit.create(DogApiService::class.java)
-        lifecycleScope.launch(Dispatchers.IO) {
-            val response = dogApiService.getAllBreeds()
-            print(response)
-        }
+        observeStartQuiz()
     }
 
-    private fun onStartClick() {
-        vm.generateQuiz()
+    private fun observeStartQuiz() {
+        lifecycleScope.launch {
+            vm.quiz().collect { quiz ->
+                quiz?.let { startActivity(QuizActivity.newIntent(this@StartActivity, it)) }
+            }
+        }
+
     }
 
     @Composable
@@ -110,11 +103,26 @@ class StartActivity : ComponentActivity() {
             }
         }
     }
+
+    @Composable
+    fun StartButton() {
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Button(onClick = {
+                vm.generateQuiz()
+            }) {
+                Text(
+                    "Start",
+                    fontSize = 32.sp,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+    }
 }
 
 @Composable
-fun LoadingQuiz(isLoading: Boolean) {
-    if (isLoading) {
+fun LoadingQuiz(isLoading: State<Boolean>) {
+    if (isLoading.value) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -129,27 +137,7 @@ fun LoadingQuiz(isLoading: Boolean) {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    WoofTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "Android",
-                modifier = Modifier.padding(innerPadding)
-            )
-            CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            )
-        }
-    }
+fun LottieHome() {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.dog_purple))
+    LottieAnimation(composition, iterations = LottieConstants.IterateForever)
 }
