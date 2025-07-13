@@ -19,10 +19,14 @@ class QuizViewModel: ViewModel() {
     private lateinit var scoreList: List<Result>
     private val currentQuestion = MutableStateFlow<Question?>(null)
     private val pageIndicator = MutableStateFlow<List<Result>>(emptyList())
+    private val correctChoice = MutableStateFlow<BreedVariant?>(null)
+    private var answered = false
     private var index = 0
 
     fun pageIndicator(): StateFlow<List<Result>> = pageIndicator
     fun currentQuestion(): StateFlow<Question?> = currentQuestion
+    // Show ui to the user if the selected the correct answer
+    fun correctChoice(): StateFlow<BreedVariant?> = correctChoice
 
     fun setQuiz(quiz: Quiz) {
         this.quiz = quiz
@@ -41,6 +45,10 @@ class QuizViewModel: ViewModel() {
     }
 
     fun answer(breedVariant: BreedVariant) {
+        // Check if already answered to prevent user clicking again when animating or transitioning
+        if (answered) return
+
+        answered = true
         val question = currentQuestion.value ?: return
 
         val isCorrect = question.dogPhoto.breedVariant == breedVariant
@@ -61,6 +69,7 @@ class QuizViewModel: ViewModel() {
         if (index == quiz.questionList.size - 1) {
             // todo show quiz result
         } else {
+            answered = false
             index++
             val nextQuestion = quiz.questionList[index]
             scoreList = scoreList.toMutableList().apply {

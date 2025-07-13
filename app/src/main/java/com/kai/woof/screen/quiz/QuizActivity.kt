@@ -11,6 +11,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,12 +24,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +54,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.IntentCompat
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.kai.woof.R
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
@@ -112,24 +124,39 @@ class QuizActivity : ComponentActivity() {
 
     @Composable
     private fun ChoiceList(list: List<BreedVariant>) {
+        val correctBreed = vm.correctChoice().collectAsState()
+
         for (i in list) {
             val breed = i.breedName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
             val subBreed = i.subBreedName?.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
             val name = if (subBreed != null) "$subBreed $breed" else breed
 
             Box(modifier = Modifier.padding(vertical = 8.dp)) {
-                Button(onClick = {vm.answer(i)}) {
+                Button(onClick = {vm.answer(i)}, modifier = Modifier.fillMaxWidth(),
+                ) {
                     Text(
                         name,
                         fontSize = 24.sp,
                         fontStyle = FontStyle.Italic,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp),
+                            .padding(4.dp, 8.dp)
+
                     )
                 }
             }
         }
+    }
+
+    @Composable
+    fun CorrectLottieView() {
+        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.correct3))
+        LottieAnimation(
+            composition,
+            iterations = LottieConstants.IterateForever,
+            modifier = Modifier
+                .width(50.dp)
+                .height(50.dp)
+        )
     }
 
     @Composable
