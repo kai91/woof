@@ -2,11 +2,11 @@ package com.kai.woof.screen.start
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kai.woof.di.DispatcherProvider
 import com.kai.woof.model.Quiz
 import com.kai.woof.model.QuizResult
 import com.kai.woof.quiz.QuizGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,8 +16,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StartViewModel @Inject constructor(
-    private val quizGenerator: QuizGenerator
-): ViewModel() {
+    private val quizGenerator: QuizGenerator,
+    private val dispatchers: DispatcherProvider,
+) : ViewModel() {
 
     private val quiz = MutableStateFlow<Quiz?>(null)
     private val isLoading = MutableStateFlow(false)
@@ -33,11 +34,10 @@ class StartViewModel @Inject constructor(
     fun lastQuizResult(): StateFlow<QuizResult?> = lastQuizResult
 
     fun generateQuiz() {
-        viewModelScope.launch(Dispatchers.IO) {
-            isLoading.value = true
+        isLoading.value = true
+        viewModelScope.launch(dispatchers.io) {
             val newQuiz = kotlin.runCatching {
                 quizGenerator.generateQuiz()
-
             }
 
             newQuiz.fold({ successResult ->
@@ -47,7 +47,6 @@ class StartViewModel @Inject constructor(
                 isLoading.value = false
                 error.emit(exception.message ?: "Puppies not found")
             })
-
         }
     }
 

@@ -9,7 +9,6 @@ import java.io.File
 import java.io.IOException
 
 
-
 private const val TMP_IMAGE_FOLDER_PATH = "tmp_photo"
 
 class ImageDownloader(

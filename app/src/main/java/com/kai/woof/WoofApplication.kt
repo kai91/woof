@@ -7,10 +7,11 @@ import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 
 @HiltAndroidApp
-class WoofApplication: Application() {
+class WoofApplication : Application() {
 
     @Inject
     lateinit var quizGenerator: QuizGenerator
+
     @Inject
     lateinit var imageDownloader: ImageDownloader
 

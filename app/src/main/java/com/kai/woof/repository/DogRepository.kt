@@ -9,7 +9,7 @@ import javax.inject.Inject
 class DogRepositoryImpl @Inject constructor(
     private val dogApiService: DogApiService,
     private val imageDownloader: ImageDownloader,
-): DogRepository {
+) : DogRepository {
     override suspend fun getCompleteDogBreeds(): List<Breed>? {
         val response = dogApiService.getAllBreeds()
         val body = response.body()

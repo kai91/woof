@@ -9,7 +9,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Quiz(
     val questionList: List<Question>
-): Parcelable
+) : Parcelable
 
 /**
  * A Question has a photo, a list of choices to be displayed to the user, and a correct answer
@@ -18,4 +18,4 @@ data class Quiz(
 data class Question(
     val dogPhoto: DogPhoto,
     val choiceList: List<BreedVariant>
-): Parcelable
+) : Parcelable

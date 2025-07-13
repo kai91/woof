@@ -22,13 +22,22 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideDispatcherProvider(): DispatcherProvider {
+        return DefaultDispatcherProvider()
+    }
+
+    @Provides
+    @Singleton
     fun provideQuizGenerator(dogRepository: DogRepository): QuizGenerator {
         return QuizGenerator(dogRepository)
     }
 
     @Provides
     @Singleton
-    fun provideImageDownloader(@ApplicationContext context: Context, dogApiService: DogApiService): ImageDownloader {
+    fun provideImageDownloader(
+        @ApplicationContext context: Context,
+        dogApiService: DogApiService
+    ): ImageDownloader {
         return ImageDownloader(context, dogApiService)
     }
 

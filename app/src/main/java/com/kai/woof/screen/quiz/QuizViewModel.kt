@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 /**
  * Handle logic for scoring the quiz result
  */
-class QuizViewModel: ViewModel() {
+class QuizViewModel : ViewModel() {
 
     private lateinit var quiz: Quiz
     private lateinit var scoreList: List<Result>
@@ -29,6 +29,7 @@ class QuizViewModel: ViewModel() {
 
     fun pageIndicator(): StateFlow<List<Result>> = pageIndicator
     fun currentQuestion(): StateFlow<Question?> = currentQuestion
+
     // Show ui to the user if the selected the correct answer
     fun correctChoice(): StateFlow<BreedVariant?> = correctChoice
     fun incorrectChoice(): StateFlow<BreedVariant?> = incorrectChoice
@@ -86,7 +87,7 @@ class QuizViewModel: ViewModel() {
             val timeTaken = System.currentTimeMillis() - startTime
             val score = scoreList.count { it == Result.Correct }
             val result = QuizResult(timeTaken, score)
-            
+
             viewModelScope.launch {
                 quizResult.emit(result)
             }

@@ -10,4 +10,4 @@ import kotlinx.parcelize.Parcelize
 data class BreedVariant(
     val breedName: String,
     val subBreedName: String?
-): Parcelable
+) : Parcelable
