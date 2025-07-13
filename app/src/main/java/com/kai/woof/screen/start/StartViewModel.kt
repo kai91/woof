@@ -44,6 +44,7 @@ class StartViewModel @Inject constructor(
                 quiz.value = successResult
                 isLoading.value = false
             }, { exception ->
+                isLoading.value = false
                 error.emit(exception.message ?: "Puppies not found")
             })
 

@@ -37,7 +37,7 @@ class QuizGenerator(
     fun initAsync() {
         // It's ok to use GlobalScope since this is designed to be a Singleton
         GlobalScope.launch {
-            init()
+            runCatching { init() }
         }
     }
 

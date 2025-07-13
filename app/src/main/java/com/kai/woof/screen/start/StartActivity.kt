@@ -1,12 +1,11 @@
 package com.kai.woof.screen.start
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.IntentCompat
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -43,7 +43,6 @@ import com.kai.woof.screen.quiz.QuizActivity
 import com.kai.woof.ui.theme.WoofTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import androidx.core.content.IntentCompat
 
 @AndroidEntryPoint
 class StartActivity : ComponentActivity() {
@@ -55,7 +54,8 @@ class StartActivity : ComponentActivity() {
     ) { result ->
         if (result.resultCode == QuizActivity.QUIZ_RESULT_CODE) {
             result.data?.let { data ->
-                val quizResult = IntentCompat.getParcelableExtra(data, "result", QuizResult::class.java)
+                val quizResult =
+                    IntentCompat.getParcelableExtra(data, "result", QuizResult::class.java)
                 quizResult?.let { handleQuizResult(it) }
             }
         }
@@ -78,20 +78,21 @@ class StartActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxWidth()
+                        if (isLoading.value) {
+                            LoadingQuiz(isLoading)
+                        } else {
+                            Column {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    LottieHome()
+                                }
 
-                            ) {
-                                LottieHome()
+                                StartButton()
                             }
-
-                            StartButton()
                         }
-
                     }
-                    LoadingQuiz(isLoading)
                 }
             }
         }
@@ -102,7 +103,7 @@ class StartActivity : ComponentActivity() {
     private fun observeStartQuiz() {
         lifecycleScope.launch {
             vm.quiz().collect { quiz ->
-                quiz?.let { 
+                quiz?.let {
                     quizResultLauncher.launch(QuizActivity.newIntent(this@StartActivity, it))
                 }
             }
@@ -126,7 +127,7 @@ class StartActivity : ComponentActivity() {
     @Composable
     fun StartButton() {
         val lastResult = vm.lastQuizResult().collectAsState()
-        
+
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // Show last quiz result if available
@@ -134,7 +135,7 @@ class StartActivity : ComponentActivity() {
                     QuizResultDisplay(result)
                     Spacer(modifier = Modifier.padding(16.dp))
                 }
-                
+
                 Button(onClick = {
                     vm.generateQuiz()
                 }) {
@@ -165,14 +166,14 @@ class StartActivity : ComponentActivity() {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            
+
             Text(
                 text = "Score: ${result.score}/10",
                 fontSize = 18.sp,
                 color = if (percentage >= 50) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.error
             )
-            
+
             Text(
                 text = "Time: ${timeInSeconds}s",
                 fontSize = 16.sp,
@@ -189,11 +190,60 @@ fun LoadingQuiz(isLoading: State<Boolean>) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
-                color = MaterialTheme.colorScheme.secondary,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-            )
+            // Semi-transparent background overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    // Loading animation
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(R.raw.loading_corgi)
+                    )
+                    LottieAnimation(
+                        composition = composition,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .aspectRatio(1f)
+                    )
+
+                    Spacer(modifier = Modifier.padding(24.dp))
+
+                    // Loading text
+                    Text(
+                        text = "Gathering the puppies...",
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+
+                    Spacer(modifier = Modifier.padding(16.dp))
+
+                    // Subtitle
+                    Text(
+                        text = "Fetching dog breeds and photos",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    Spacer(modifier = Modifier.padding(32.dp))
+
+                    // Progress indicator
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(48.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        strokeWidth = 4.dp
+                    )
+                }
+            }
         }
     }
 }

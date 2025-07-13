@@ -23,10 +23,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,15 +46,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.IntentCompat
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
-import com.kai.woof.R
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
-import com.kai.woof.model.QuizResult
 import com.kai.woof.ui.theme.WoofTheme
 
 private const val quizKey = "quiz"
@@ -66,7 +58,7 @@ class QuizActivity : ComponentActivity() {
 
     companion object {
         const val QUIZ_RESULT_CODE = 1001
-        
+
         fun newIntent(context: Context, quiz: Quiz): Intent {
             val intent = Intent(context, QuizActivity::class.java)
             intent.putExtra(quizKey, quiz)
@@ -86,7 +78,7 @@ class QuizActivity : ComponentActivity() {
             WoofTheme {
                 val question = vm.currentQuestion().collectAsState().value ?: return@WoofTheme
                 val quizResult = vm.quizResult().collectAsState().value
-                
+
                 // Handle quiz completion
                 quizResult?.let { result ->
                     val resultIntent = Intent().apply {
@@ -96,7 +88,7 @@ class QuizActivity : ComponentActivity() {
                     finish()
                     return@WoofTheme
                 }
-                
+
                 Scaffold(Modifier.fillMaxSize()) { innerPadding ->
                     QuizView(
                         question, Modifier
@@ -149,7 +141,10 @@ class QuizActivity : ComponentActivity() {
                 val incorrect = incorrectBreed.value == i
                 val backgroundColor by animateColorAsState(
                     targetValue = if (correct) Color(0xFF41ab5d) else if (incorrect) Color.Red else Color.Unspecified,
-                    animationSpec = tween(durationMillis = if (!correct && !incorrect) 0 else 300, easing = LinearEasing),
+                    animationSpec = tween(
+                        durationMillis = if (!correct && !incorrect) 0 else 300,
+                        easing = LinearEasing
+                    ),
                 )
 
                 Button(
@@ -169,18 +164,6 @@ class QuizActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    @Composable
-    fun CorrectLottieView() {
-        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.correct3))
-        LottieAnimation(
-            composition,
-            iterations = LottieConstants.IterateForever,
-            modifier = Modifier
-                .width(50.dp)
-                .height(50.dp)
-        )
     }
 
     @Composable
