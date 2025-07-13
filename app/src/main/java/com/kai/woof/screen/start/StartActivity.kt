@@ -1,12 +1,15 @@
 package com.kai.woof.screen.start
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,15 +38,28 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.kai.woof.R
+import com.kai.woof.model.QuizResult
 import com.kai.woof.screen.quiz.QuizActivity
 import com.kai.woof.ui.theme.WoofTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import androidx.core.content.IntentCompat
 
 @AndroidEntryPoint
 class StartActivity : ComponentActivity() {
 
     private val vm: StartViewModel by viewModels()
+
+    private val quizResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == QuizActivity.QUIZ_RESULT_CODE) {
+            result.data?.let { data ->
+                val quizResult = IntentCompat.getParcelableExtra(data, "result", QuizResult::class.java)
+                quizResult?.let { handleQuizResult(it) }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,10 +102,15 @@ class StartActivity : ComponentActivity() {
     private fun observeStartQuiz() {
         lifecycleScope.launch {
             vm.quiz().collect { quiz ->
-                quiz?.let { startActivity(QuizActivity.newIntent(this@StartActivity, it)) }
+                quiz?.let { 
+                    quizResultLauncher.launch(QuizActivity.newIntent(this@StartActivity, it))
+                }
             }
         }
+    }
 
+    private fun handleQuizResult(quizResult: QuizResult) {
+        vm.setQuizResult(quizResult)
     }
 
     @Composable
@@ -104,16 +125,59 @@ class StartActivity : ComponentActivity() {
 
     @Composable
     fun StartButton() {
+        val lastResult = vm.lastQuizResult().collectAsState()
+        
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Button(onClick = {
-                vm.generateQuiz()
-            }) {
-                Text(
-                    "Start",
-                    fontSize = 24.sp,
-                    modifier = Modifier.padding(8.dp)
-                )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Show last quiz result if available
+                lastResult.value?.let { result ->
+                    QuizResultDisplay(result)
+                    Spacer(modifier = Modifier.padding(16.dp))
+                }
+                
+                Button(onClick = {
+                    vm.generateQuiz()
+                }) {
+                    Text(
+                        "Start",
+                        fontSize = 24.sp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
             }
+        }
+    }
+
+    @Composable
+    fun QuizResultDisplay(result: QuizResult) {
+        val timeInSeconds = result.timeTakenMs / 1000
+        val percentage = (result.score * 5)
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Last Quiz Result",
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            Text(
+                text = "Score: ${result.score}/10",
+                fontSize = 18.sp,
+                color = if (percentage >= 50) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.error
+            )
+            
+            Text(
+                text = "Time: ${timeInSeconds}s",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

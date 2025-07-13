@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +21,7 @@ class QuizViewModel: ViewModel() {
     private val pageIndicator = MutableStateFlow<List<Result>>(emptyList())
     private val correctChoice = MutableStateFlow<BreedVariant?>(null)
     private val incorrectChoice = MutableStateFlow<BreedVariant?>(null)
+    private val quizCompleted = MutableStateFlow(false)
     private var answered = false
     private var index = 0
 
@@ -30,6 +30,7 @@ class QuizViewModel: ViewModel() {
     // Show ui to the user if the selected the correct answer
     fun correctChoice(): StateFlow<BreedVariant?> = correctChoice
     fun incorrectChoice(): StateFlow<BreedVariant?> = incorrectChoice
+    fun quizCompleted(): StateFlow<Boolean> = quizCompleted
 
     fun setQuiz(quiz: Quiz) {
         this.quiz = quiz
@@ -78,7 +79,10 @@ class QuizViewModel: ViewModel() {
      */
     private fun moveToNextQuestion() {
         if (index == quiz.questionList.size - 1) {
-            // todo show quiz result
+            // Quiz completed
+            viewModelScope.launch {
+                quizCompleted.emit(true)
+            }
         } else {
             // clear previous selection
             answered = false
@@ -98,6 +102,12 @@ class QuizViewModel: ViewModel() {
 
     }
 
+    /**
+     * Calculate the final score based on correct answers
+     */
+    fun getScore(): Int {
+        return scoreList.count { it == Result.Correct }
+    }
 
 }
 

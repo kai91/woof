@@ -56,13 +56,17 @@ import com.kai.woof.R
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
+import com.kai.woof.model.QuizResult
 import com.kai.woof.ui.theme.WoofTheme
 
 private const val quizKey = "quiz"
+private const val resultKey = "result"
 
 class QuizActivity : ComponentActivity() {
 
     companion object {
+        const val QUIZ_RESULT_CODE = 1001
+        
         fun newIntent(context: Context, quiz: Quiz): Intent {
             val intent = Intent(context, QuizActivity::class.java)
             intent.putExtra(quizKey, quiz)
@@ -72,16 +76,33 @@ class QuizActivity : ComponentActivity() {
 
     private lateinit var quiz: Quiz
     private val vm: QuizViewModel by viewModels()
-
+    private var startTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         IntentCompat.getParcelableExtra(intent, quizKey, Quiz::class.java)?.let { quiz = it }
         vm.setQuiz(quiz)
+        startTime = System.currentTimeMillis()
         enableEdgeToEdge()
         setContent {
             WoofTheme {
                 val question = vm.currentQuestion().collectAsState().value ?: return@WoofTheme
+                val quizCompleted = vm.quizCompleted().collectAsState().value
+                
+                // Handle quiz completion
+                if (quizCompleted) {
+                    val timeTaken = System.currentTimeMillis() - startTime
+                    val score = vm.getScore()
+                    val result = QuizResult(timeTaken, score)
+                    
+                    val resultIntent = Intent().apply {
+                        putExtra(resultKey, result)
+                    }
+                    setResult(QUIZ_RESULT_CODE, resultIntent)
+                    finish()
+                    return@WoofTheme
+                }
+                
                 Scaffold(Modifier.fillMaxSize()) { innerPadding ->
                     QuizView(
                         question, Modifier

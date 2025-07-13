@@ -3,6 +3,7 @@ package com.kai.woof.screen.start
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kai.woof.model.Quiz
+import com.kai.woof.model.QuizResult
 import com.kai.woof.quiz.QuizGenerator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +22,7 @@ class StartViewModel @Inject constructor(
     private val quiz = MutableStateFlow<Quiz?>(null)
     private val isLoading = MutableStateFlow(false)
     private val error = MutableSharedFlow<String>()
+    private val lastQuizResult = MutableStateFlow<QuizResult?>(null)
 
     /**
      * Expose states to ui to subscribe to
@@ -28,6 +30,7 @@ class StartViewModel @Inject constructor(
     fun quiz(): StateFlow<Quiz?> = quiz
     fun isLoading(): StateFlow<Boolean> = isLoading
     fun error(): SharedFlow<String> = error
+    fun lastQuizResult(): StateFlow<QuizResult?> = lastQuizResult
 
     fun generateQuiz() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -45,5 +48,9 @@ class StartViewModel @Inject constructor(
             })
 
         }
+    }
+
+    fun setQuizResult(result: QuizResult) {
+        lastQuizResult.value = result
     }
 }
