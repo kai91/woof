@@ -15,7 +15,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,17 +31,12 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -91,7 +85,8 @@ class QuizActivity : ComponentActivity() {
                 Scaffold(Modifier.fillMaxSize()) { innerPadding ->
                     QuizView(
                         question, Modifier
-                            .padding(innerPadding))
+                            .padding(innerPadding)
+                    )
                 }
             }
         }
@@ -125,14 +120,29 @@ class QuizActivity : ComponentActivity() {
     @Composable
     private fun ChoiceList(list: List<BreedVariant>) {
         val correctBreed = vm.correctChoice().collectAsState()
+        val incorrectBreed = vm.incorrectChoice().collectAsState()
 
         for (i in list) {
-            val breed = i.breedName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-            val subBreed = i.subBreedName?.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            val breed =
+                i.breedName.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            val subBreed =
+                i.subBreedName?.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
             val name = if (subBreed != null) "$subBreed $breed" else breed
 
             Box(modifier = Modifier.padding(vertical = 8.dp)) {
-                Button(onClick = {vm.answer(i)}, modifier = Modifier.fillMaxWidth(),
+                val correct = correctBreed.value == i
+                val incorrect = incorrectBreed.value == i
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (correct) Color(0xFF41ab5d) else if (incorrect) Color.Red else Color.Unspecified,
+                    animationSpec = tween(durationMillis = if (!correct && !incorrect) 0 else 300, easing = LinearEasing),
+                )
+
+                Button(
+                    onClick = { vm.answer(i) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = backgroundColor
+                    )
                 ) {
                     Text(
                         name,
@@ -140,7 +150,6 @@ class QuizActivity : ComponentActivity() {
                         fontStyle = FontStyle.Italic,
                         modifier = Modifier
                             .padding(4.dp, 8.dp)
-
                     )
                 }
             }
@@ -170,7 +179,7 @@ class QuizActivity : ComponentActivity() {
             horizontalArrangement = Arrangement.Center,
         ) {
             pageIndicator.value.map { result ->
-                val color = when(result) {
+                val color = when (result) {
                     Result.Incorrect -> Color(0xFFD03D56) // Red
                     Result.Correct -> Color(0xFF41ab5d) // Green
                     Result.Current -> Color.DarkGray

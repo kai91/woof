@@ -6,6 +6,7 @@ import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,6 +21,7 @@ class QuizViewModel: ViewModel() {
     private val currentQuestion = MutableStateFlow<Question?>(null)
     private val pageIndicator = MutableStateFlow<List<Result>>(emptyList())
     private val correctChoice = MutableStateFlow<BreedVariant?>(null)
+    private val incorrectChoice = MutableStateFlow<BreedVariant?>(null)
     private var answered = false
     private var index = 0
 
@@ -27,6 +29,7 @@ class QuizViewModel: ViewModel() {
     fun currentQuestion(): StateFlow<Question?> = currentQuestion
     // Show ui to the user if the selected the correct answer
     fun correctChoice(): StateFlow<BreedVariant?> = correctChoice
+    fun incorrectChoice(): StateFlow<BreedVariant?> = incorrectChoice
 
     fun setQuiz(quiz: Quiz) {
         this.quiz = quiz
@@ -57,9 +60,17 @@ class QuizViewModel: ViewModel() {
         }
         viewModelScope.launch {
             pageIndicator.emit(scoreList)
+            if (isCorrect) {
+                correctChoice.emit(breedVariant)
+            } else {
+                correctChoice.emit(question.dogPhoto.breedVariant)
+                incorrectChoice.emit(breedVariant)
+            }
+
+            delay(2000)
+            moveToNextQuestion()
         }
 
-        moveToNextQuestion()
     }
 
     /**
@@ -69,7 +80,9 @@ class QuizViewModel: ViewModel() {
         if (index == quiz.questionList.size - 1) {
             // todo show quiz result
         } else {
+            // clear previous selection
             answered = false
+
             index++
             val nextQuestion = quiz.questionList[index]
             scoreList = scoreList.toMutableList().apply {
@@ -77,6 +90,8 @@ class QuizViewModel: ViewModel() {
             }
             viewModelScope.launch {
                 pageIndicator.emit(scoreList)
+                incorrectChoice.emit(null)
+                correctChoice.emit(null)
                 currentQuestion.emit(nextQuestion)
             }
         }
