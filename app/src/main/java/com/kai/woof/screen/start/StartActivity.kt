@@ -13,8 +13,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,51 +29,32 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.kai.woof.api.DogApiService
-import com.kai.woof.image.ImageDownloader
-import com.kai.woof.quiz.QuizGenerator
-import com.kai.woof.repository.DogRepository
-import com.kai.woof.repository.DogRepositoryImpl
-import com.kai.woof.screen.quiz.QuizActivity
 import com.kai.woof.ui.theme.WoofTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+@AndroidEntryPoint
 class StartActivity : ComponentActivity() {
 
-    private lateinit var dogApiService: DogApiService
-    private lateinit var imageDownloader: ImageDownloader
-    private lateinit var dogRepository: DogRepository
-    private lateinit var quizGenerator: QuizGenerator
-    private val vm: StartViewModel by viewModels()
-
-    private fun init() {
-        val gson = Gson()
-        val okHttpClient = OkHttpClient()
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://dog.ceo/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-
-        dogApiService = retrofit.create(DogApiService::class.java)
-        imageDownloader = ImageDownloader(applicationContext, dogApiService)
-        dogRepository = DogRepositoryImpl(dogApiService, imageDownloader)
-        quizGenerator = QuizGenerator(dogRepository)
-    }
+    val vm: StartViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        init()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             WoofTheme {
                 var isLoading by remember { mutableStateOf(false) }
-                
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                val snackbarHostState = remember { SnackbarHostState() }
+
+                Scaffold(snackbarHost = {
+                    SnackbarHost(hostState = snackbarHostState)
+                },modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    ErrorSnackBar(snackbarHostState)
+
                     Greeting(
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
@@ -80,14 +64,15 @@ class StartActivity : ComponentActivity() {
                         contentAlignment = Alignment.Center
                     ) {
                         Button(onClick = {
-                            isLoading = true
-                            lifecycleScope.launch(Dispatchers.IO) {
-                                val quiz = quizGenerator.generateQuiz()
-                                isLoading = false
-                                withContext(Dispatchers.Main) {
-                                    startActivity(QuizActivity.newIntent(this@StartActivity, quiz))
-                                }
-                            }
+                            onStartClick()
+//                            isLoading = true
+//                            lifecycleScope.launch(Dispatchers.IO) {
+//                                val quiz = quizGenerator.generateQuiz()
+//                                isLoading = false
+//                                withContext(Dispatchers.Main) {
+//                                    startActivity(QuizActivity.newIntent(this@StartActivity, quiz))
+//                                }
+//                            }
                         }) {
                             Text("Start")
                         }
@@ -113,7 +98,17 @@ class StartActivity : ComponentActivity() {
     }
 
     private fun onStartClick() {
+        vm.generateQuiz()
+    }
 
+    @Composable
+    fun ErrorSnackBar(snackbarHostState: SnackbarHostState) {
+        // Collect error events as a one-time effect
+        LaunchedEffect(Unit) {
+            vm.error().collect { errorMessage ->
+                snackbarHostState.showSnackbar(errorMessage)
+            }
+        }
     }
 }
 
@@ -144,9 +139,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun GreetingPreview() {
-//    WoofTheme {
-//        Greeting("Android")
-//    }
     WoofTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Greeting(
