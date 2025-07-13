@@ -3,6 +3,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-parcelize")
+
+    // Hilt
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -62,6 +66,7 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.coil.compose)
 
-    // material
-//    implementation("androidx.compose.material3:material3:1.4.0-alpha17")
+    // hilt
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
 }

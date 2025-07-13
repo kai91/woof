@@ -1,9 +1,10 @@
-package com.kai.woof
+package com.kai.woof.screen.start
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,6 +30,7 @@ import com.kai.woof.image.ImageDownloader
 import com.kai.woof.quiz.QuizGenerator
 import com.kai.woof.repository.DogRepository
 import com.kai.woof.repository.DogRepositoryImpl
+import com.kai.woof.screen.quiz.QuizActivity
 import com.kai.woof.ui.theme.WoofTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,6 +45,7 @@ class StartActivity : ComponentActivity() {
     private lateinit var imageDownloader: ImageDownloader
     private lateinit var dogRepository: DogRepository
     private lateinit var quizGenerator: QuizGenerator
+    private val vm: StartViewModel by viewModels()
 
     private fun init() {
         val gson = Gson()

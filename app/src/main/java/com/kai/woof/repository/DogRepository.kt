@@ -4,8 +4,9 @@ import com.kai.woof.api.DogApiService
 import com.kai.woof.image.ImageDownloader
 import com.kai.woof.model.Breed
 import com.kai.woof.model.DogPhoto
+import javax.inject.Inject
 
-class DogRepositoryImpl(
+class DogRepositoryImpl @Inject constructor(
     private val dogApiService: DogApiService,
     private val imageDownloader: ImageDownloader,
 ): DogRepository {
