@@ -36,6 +36,23 @@ class ImageDownloader(
     }
 
     /**
+     * Clears all temporary photos from the cache directory
+     * @return true if all files were successfully deleted, false otherwise
+     */
+    fun clearTempPhotos(): Boolean {
+        return try {
+            if (tempPhotoDirectoryFile.exists()) {
+                val files = tempPhotoDirectoryFile.listFiles()
+                files?.all { it.delete() } ?: true // Directory is empty or doesn't contain files
+            } else {
+                true // Directory doesn't exist, so nothing to clear
+            }
+        } catch (e: Exception) {
+            false // Return false if any error occurs during deletion
+        }
+    }
+
+    /**
      * Parse for breed info from the url.
      * The last portion of the path is the file name.
      * The second last portion of the path is the breed variant info:
@@ -58,6 +75,7 @@ class ImageDownloader(
 
     private fun extractFileNameFromUrl(url: String): String {
         val split = url.split("/")
-        return split[split.size - 1]
+        val breed = split[split.size - 2]
+        return "${breed}_${split[split.size - 1]}"
     }
 }

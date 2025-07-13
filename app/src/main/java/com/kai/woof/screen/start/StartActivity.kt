@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class StartActivity : ComponentActivity() {
 
-    val vm: StartViewModel by viewModels()
+    private val vm: StartViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,14 +63,12 @@ class StartActivity : ComponentActivity() {
                         contentAlignment = Alignment.Center
                     ) {
                         Column {
-
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxWidth()
+
                             ) {
                                 LottieHome()
-
                             }
 
                             StartButton()
@@ -112,7 +110,7 @@ class StartActivity : ComponentActivity() {
             }) {
                 Text(
                     "Start",
-                    fontSize = 32.sp,
+                    fontSize = 24.sp,
                     modifier = Modifier.padding(8.dp)
                 )
             }
@@ -139,5 +137,11 @@ fun LoadingQuiz(isLoading: State<Boolean>) {
 @Composable
 fun LottieHome() {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.dog_purple))
-    LottieAnimation(composition, iterations = LottieConstants.IterateForever)
+    LottieAnimation(
+        composition,
+        iterations = LottieConstants.IterateForever,
+        modifier = Modifier
+            .fillMaxWidth(.75f)
+            .aspectRatio(1f)
+    )
 }
