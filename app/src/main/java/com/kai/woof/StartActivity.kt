@@ -33,12 +33,11 @@ import com.kai.woof.ui.theme.WoofTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class MainActivity : ComponentActivity() {
+class StartActivity : ComponentActivity() {
 
     private lateinit var dogApiService: DogApiService
     private lateinit var imageDownloader: ImageDownloader
@@ -83,7 +82,7 @@ class MainActivity : ComponentActivity() {
                                 val quiz = quizGenerator.generateQuiz()
                                 isLoading = false
                                 withContext(Dispatchers.Main) {
-                                    startActivity(QuizActivity.newIntent(this@MainActivity, quiz))
+                                    startActivity(QuizActivity.newIntent(this@StartActivity, quiz))
                                 }
                             }
                         }) {
