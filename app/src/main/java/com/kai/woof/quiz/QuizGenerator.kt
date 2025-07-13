@@ -14,6 +14,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.random.Random
 
 // Number of questions in a single Quiz
 private const val QUIZ_SIZE = 5
@@ -85,7 +86,20 @@ class QuizGenerator(
         return Quiz(questions)
     }
 
-    private fun generateQuestion(dogPhoto: DogPhoto): Question {
-        return Question(dogPhoto, listOf())
+    private fun generateQuestion(dogPhoto: DogPhoto, numberOfChoices: Int = 3): Question {
+        val correctAnswer = dogPhoto.breedVariant
+        // Exclude the correct answer from the list
+        var variantList = (completeVariantList ?: emptyList()) - correctAnswer
+
+        val options = mutableListOf<BreedVariant>()
+        options.add(correctAnswer)
+
+        for (i in 1..<numberOfChoices) {
+            val option = variantList[Random.nextInt(variantList.size)]
+            variantList = variantList - option
+            options.add(option)
+        }
+
+        return Question(dogPhoto, options.shuffled())
     }
 }

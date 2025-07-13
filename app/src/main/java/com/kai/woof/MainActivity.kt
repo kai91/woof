@@ -14,6 +14,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +32,7 @@ import com.kai.woof.repository.DogRepositoryImpl
 import com.kai.woof.ui.theme.WoofTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Dispatcher
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -35,7 +40,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
 
-    private var isLoading = false
     private lateinit var dogApiService: DogApiService
     private lateinit var imageDownloader: ImageDownloader
     private lateinit var dogRepository: DogRepository
@@ -62,6 +66,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WoofTheme {
+                var isLoading by remember { mutableStateOf(false) }
+                
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
                         name = "Android",
@@ -75,23 +81,16 @@ class MainActivity : ComponentActivity() {
                             isLoading = true
                             lifecycleScope.launch(Dispatchers.IO) {
                                 val quiz = quizGenerator.generateQuiz()
+                                isLoading = false
+                                withContext(Dispatchers.Main) {
+                                    startActivity(QuizActivity.newIntent(this@MainActivity, quiz))
+                                }
                             }
                         }) {
                             Text("Start")
                         }
                     }
-                    if (isLoading) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.width(64.dp),
-                                color = MaterialTheme.colorScheme.secondary,
-                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            )
-                        }
-                    }
+                    LoadingQuiz(isLoading)
                 }
             }
         }
@@ -113,6 +112,22 @@ class MainActivity : ComponentActivity() {
 
     private fun onStartClick() {
 
+    }
+}
+
+@Composable
+fun LoadingQuiz(isLoading: Boolean) {
+    if (isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.width(64.dp),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        }
     }
 }
 
