@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
+import com.kai.woof.model.QuizResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,19 +22,21 @@ class QuizViewModel: ViewModel() {
     private val pageIndicator = MutableStateFlow<List<Result>>(emptyList())
     private val correctChoice = MutableStateFlow<BreedVariant?>(null)
     private val incorrectChoice = MutableStateFlow<BreedVariant?>(null)
-    private val quizCompleted = MutableStateFlow(false)
+    private val quizResult = MutableStateFlow<QuizResult?>(null)
     private var answered = false
     private var index = 0
+    private var startTime: Long = 0
 
     fun pageIndicator(): StateFlow<List<Result>> = pageIndicator
     fun currentQuestion(): StateFlow<Question?> = currentQuestion
     // Show ui to the user if the selected the correct answer
     fun correctChoice(): StateFlow<BreedVariant?> = correctChoice
     fun incorrectChoice(): StateFlow<BreedVariant?> = incorrectChoice
-    fun quizCompleted(): StateFlow<Boolean> = quizCompleted
+    fun quizResult(): StateFlow<QuizResult?> = quizResult
 
     fun setQuiz(quiz: Quiz) {
         this.quiz = quiz
+        this.startTime = System.currentTimeMillis()
         if (quiz.questionList.isEmpty()) {
             return
         }
@@ -79,9 +82,13 @@ class QuizViewModel: ViewModel() {
      */
     private fun moveToNextQuestion() {
         if (index == quiz.questionList.size - 1) {
-            // Quiz completed
+            // Quiz completed - emit result
+            val timeTaken = System.currentTimeMillis() - startTime
+            val score = scoreList.count { it == Result.Correct }
+            val result = QuizResult(timeTaken, score)
+            
             viewModelScope.launch {
-                quizCompleted.emit(true)
+                quizResult.emit(result)
             }
         } else {
             // clear previous selection
@@ -100,13 +107,6 @@ class QuizViewModel: ViewModel() {
             }
         }
 
-    }
-
-    /**
-     * Calculate the final score based on correct answers
-     */
-    fun getScore(): Int {
-        return scoreList.count { it == Result.Correct }
     }
 
 }

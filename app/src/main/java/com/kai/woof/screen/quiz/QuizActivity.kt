@@ -76,25 +76,19 @@ class QuizActivity : ComponentActivity() {
 
     private lateinit var quiz: Quiz
     private val vm: QuizViewModel by viewModels()
-    private var startTime: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         IntentCompat.getParcelableExtra(intent, quizKey, Quiz::class.java)?.let { quiz = it }
         vm.setQuiz(quiz)
-        startTime = System.currentTimeMillis()
         enableEdgeToEdge()
         setContent {
             WoofTheme {
                 val question = vm.currentQuestion().collectAsState().value ?: return@WoofTheme
-                val quizCompleted = vm.quizCompleted().collectAsState().value
+                val quizResult = vm.quizResult().collectAsState().value
                 
                 // Handle quiz completion
-                if (quizCompleted) {
-                    val timeTaken = System.currentTimeMillis() - startTime
-                    val score = vm.getScore()
-                    val result = QuizResult(timeTaken, score)
-                    
+                quizResult?.let { result ->
                     val resultIntent = Intent().apply {
                         putExtra(resultKey, result)
                     }
