@@ -1,9 +1,5 @@
 package com.kai.woof.screen.quiz
 
-//import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-//import androidx.compose.material3.MaterialShapes
-//import androidx.compose.material3.toShape
-//import androidx.graphics.shapes.RoundedPolygon
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -53,6 +49,9 @@ import com.kai.woof.ui.theme.WoofTheme
 
 private const val quizKey = "quiz"
 private const val resultKey = "result"
+
+private val red = Color(0xFFD03D56) // Red
+private val green = Color(0xFF41ab5d) // Green
 
 class QuizActivity : ComponentActivity() {
 
@@ -140,7 +139,7 @@ class QuizActivity : ComponentActivity() {
                 val correct = correctBreed.value == i
                 val incorrect = incorrectBreed.value == i
                 val backgroundColor by animateColorAsState(
-                    targetValue = if (correct) Color(0xFF41ab5d) else if (incorrect) Color.Red else Color.Unspecified,
+                    targetValue = if (correct) green else if (incorrect) red else Color.Unspecified,
                     animationSpec = tween(
                         durationMillis = if (!correct && !incorrect) 0 else 300,
                         easing = LinearEasing
@@ -178,8 +177,8 @@ class QuizActivity : ComponentActivity() {
         ) {
             pageIndicator.value.map { result ->
                 val color = when (result) {
-                    Result.Incorrect -> Color(0xFFD03D56) // Red
-                    Result.Correct -> Color(0xFF41ab5d) // Green
+                    Result.Incorrect -> red
+                    Result.Correct -> green
                     Result.Current -> Color.DarkGray
                     Result.Pending -> Color.Gray
                 }
