@@ -2,9 +2,10 @@
 
 A fun and interactive Android app that tests your knowledge of dog breeds through a photo quiz format. Users are presented with a series of dog photos and must choose the correct breed from multiple choices. At the end of the quiz, users can see their results.
 
+
 ## Demo
 
-https://github.com/kai91/woof/blob/main/output/recording.mp4
+https://github.com/user-attachments/assets/b98a8d30-7977-492e-abb1-21853800320d
 
 [Download Debug APK](output/app-debug.apk)
 
