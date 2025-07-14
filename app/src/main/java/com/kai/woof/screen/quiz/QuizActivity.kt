@@ -10,6 +10,8 @@ import androidx.activity.viewModels
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,6 +54,7 @@ private const val resultKey = "result"
 
 private val red = Color(0xFFD03D56) // Red
 private val green = Color(0xFF41ab5d) // Green
+private val buttonDefaultColor = Color(0xFF6650a4) // Default Material3 primary color
 
 class QuizActivity : ComponentActivity() {
 
@@ -139,10 +142,14 @@ class QuizActivity : ComponentActivity() {
                 val correct = correctBreed.value == i
                 val incorrect = incorrectBreed.value == i
                 val backgroundColor by animateColorAsState(
-                    targetValue = if (correct) green else if (incorrect) red else Color.Unspecified,
-                    animationSpec = tween(
-                        durationMillis = if (!correct && !incorrect) 0 else 300,
-                        easing = LinearEasing
+                    targetValue = when {
+                        correct -> green
+                        incorrect -> red
+                        else -> buttonDefaultColor
+                    },
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
                     ),
                 )
 

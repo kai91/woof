@@ -152,7 +152,7 @@ class StartActivity : ComponentActivity() {
     @Composable
     fun QuizResultDisplay(result: QuizResult) {
         val timeInSeconds = result.timeTakenMs / 1000
-        val percentage = (result.score * 5)
+        val percentage = (result.score.toFloat() / result.maxScore.toFloat()) * 100
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -168,7 +168,7 @@ class StartActivity : ComponentActivity() {
             )
 
             Text(
-                text = "Score: ${result.score}/10",
+                text = "Score: ${result.score}/${result.maxScore}",
                 fontSize = 18.sp,
                 color = if (percentage >= 50) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.error

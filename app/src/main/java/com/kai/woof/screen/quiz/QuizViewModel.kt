@@ -86,7 +86,7 @@ class QuizViewModel : ViewModel() {
             // Quiz completed - emit result
             val timeTaken = System.currentTimeMillis() - startTime
             val score = scoreList.count { it == Result.Correct }
-            val result = QuizResult(timeTaken, score)
+            val result = QuizResult(timeTaken, score, quiz.questionList.size)
 
             viewModelScope.launch {
                 quizResult.emit(result)

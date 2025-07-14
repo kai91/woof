@@ -73,7 +73,7 @@ class StartViewModelTest {
     @Test
     fun `setQuizResult - updates lastQuizResult state`() = runTest {
         // Given
-        val mockResult = QuizResult(10, 5)
+        val mockResult = QuizResult(10, 5, 5)
 
         // When
         viewModel.setQuizResult(mockResult)
