@@ -71,19 +71,31 @@ class QuizGenerator(
         init()
 
         // Download in parallel
-        val deferredPhotos = (1..QUIZ_SIZE).map {
+        val dogPhotos = mutableListOf<DogPhoto>()
+        while (dogPhotos.size < QUIZ_SIZE) {
+            val newPhotos = getRandomDogPhoto(QUIZ_SIZE - dogPhotos.size)
+
+            // Check for duplicate in random photo list. If found duplicate, get a new random photo
+            for (photo in newPhotos) {
+                if (dogPhotos.find { it.id == photo.id } == null) {
+                    dogPhotos.add(photo)
+                }
+            }
+        }
+
+        val questions = dogPhotos.map { generateQuestion(it) }
+        return Quiz(questions)
+    }
+
+    private suspend fun getRandomDogPhoto(size: Int): List<DogPhoto> {
+        val deferredPhotos = (1..size).map {
             coroutineScope {
                 async { dogRepository.getRandomDogPhoto() }
             }
         }
 
         val dogPhotos = deferredPhotos.awaitAll().filterNotNull()
-        if (dogPhotos.size != QUIZ_SIZE) {
-            throw IllegalStateException("Download photo failed")
-        }
-
-        val questions = dogPhotos.map { generateQuestion(it) }
-        return Quiz(questions)
+        return dogPhotos
     }
 
     private fun generateQuestion(dogPhoto: DogPhoto, numberOfChoices: Int = 3): Question {

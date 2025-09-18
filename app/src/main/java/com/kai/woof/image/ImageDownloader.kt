@@ -29,9 +29,11 @@ class ImageDownloader(
 
     suspend fun downloadPhoto(url: String): DogPhoto {
         val breedVariant = extractBreedFromUrl(url)
-        val destinationFile = File(tempPhotoDirectoryFile, extractFileNameFromUrl(url))
+        // Assume filename is unique (because there shouldn't be same file name in the same path)
+        val fileName = extractFileNameFromUrl(url)
+        val destinationFile = File(tempPhotoDirectoryFile, fileName)
         dogApiService.downloadFile(url).saveToFile(destinationFile)
-        return DogPhoto(destinationFile, breedVariant)
+        return DogPhoto(fileName,destinationFile, breedVariant)
     }
 
     /**

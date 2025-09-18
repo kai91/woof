@@ -15,9 +15,20 @@ class QuizGeneratorTest {
     private lateinit var quizGenerator: QuizGenerator
     private lateinit var dogRepository: FakeDogRepository
 
+    val breeds: List<Breed> = ('a'..'o').map { letter ->
+        Breed(letter.toString(), emptyList())
+    }
+
+    val dogPhotos: List<DogPhoto> = ('a'..'o').map { letter ->
+        DogPhoto(letter.toString(), File(letter.toString()),
+            BreedVariant(letter.toString(), null))
+    }
+
     @Before
     fun setUp() {
         dogRepository = FakeDogRepository()
+        dogRepository.breedList = breeds
+        dogRepository.dogPhoto = dogPhotos
         quizGenerator = QuizGenerator(dogRepository)
     }
 
@@ -37,14 +48,6 @@ class QuizGeneratorTest {
 
     @Test
     fun `when a quiz is generated, it should have 5 questions`() = runTest {
-        // Given
-        dogRepository.breedList = mutableListOf<Breed>().apply {
-            add(Breed("a", emptyList()))
-            add(Breed("b", emptyList()))
-            add(Breed("c", emptyList()))
-        }
-        dogRepository.dogPhoto = DogPhoto(File(""), BreedVariant("a", null))
-
         // When
         val quiz = quizGenerator.generateQuiz()
 
@@ -53,48 +56,24 @@ class QuizGeneratorTest {
     }
 
     @Test
-    fun `when a quiz is generated, the correct answer should always be one of the options`() = runTest {
-        // Given
-        dogRepository.breedList = mutableListOf<Breed>().apply {
-            add(Breed("a", emptyList()))
-            add(Breed("b", emptyList()))
-            add(Breed("c", emptyList()))
-            add(Breed("d", emptyList()))
-            add(Breed("e", emptyList()))
-            add(Breed("f", emptyList()))
-            add(Breed("g", emptyList()))
-        }
-        val returnedBreed = BreedVariant("a", null)
-        dogRepository.dogPhoto = DogPhoto(File(""), returnedBreed)
+    fun `when a quiz is generated, the correct answer should always be one of the options`() =
+        runTest {
 
-        // Repeat for 1000 times to ensure it is not random
-        for (i in 1..1000) {
-            // When
-            val quiz = quizGenerator.generateQuiz()
+            // Repeat for 1000 times to ensure it is not random
+            for (i in 1..1000) {
+                // When
+                val quiz = quizGenerator.generateQuiz()
 
-            // Then
-            quiz.questionList.map {
-                Assert.assertTrue(it.choiceList.contains(returnedBreed))
+                // Then
+                quiz.questionList.map {
+                    Assert.assertTrue(it.choiceList.contains(it.dogPhoto.breedVariant))
+                }
             }
-        }
 
-    }
+        }
 
     @Test
     fun `when a quiz is generated, all the options are unique`() = runTest {
-        // Given
-        dogRepository.breedList = mutableListOf<Breed>().apply {
-            add(Breed("a", emptyList()))
-            add(Breed("b", emptyList()))
-            add(Breed("c", emptyList()))
-            add(Breed("d", emptyList()))
-            add(Breed("e", emptyList()))
-            add(Breed("f", emptyList()))
-            add(Breed("g", emptyList()))
-        }
-        val returnedBreed = BreedVariant("a", null)
-        dogRepository.dogPhoto = DogPhoto(File(""), returnedBreed)
-
         // Repeat for 1000 times to ensure it is not random
         for (i in 1..1000) {
             // When
