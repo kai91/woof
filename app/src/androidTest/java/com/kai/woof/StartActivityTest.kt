@@ -3,15 +3,10 @@ package com.kai.woof
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasTestTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.kai.woof.screen.start.StartActivity
+import com.kai.woof.screen.MainActivity
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,7 +18,7 @@ import org.junit.runner.RunWith
 class StartActivityTest {
 
     @get:Rule
-    val composeTestRule = createAndroidComposeRule<StartActivity>()
+    val composeTestRule = createAndroidComposeRule<MainActivity>()
 
     @Test
     fun startButton_isVisible() {

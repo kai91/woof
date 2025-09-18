@@ -1,4 +1,4 @@
-package com.kai.woof.screen.start
+package com.kai.woof.screen
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,11 +13,13 @@ import androidx.navigation.compose.rememberNavController
 import com.kai.woof.model.Quiz
 import com.kai.woof.screen.quiz.QuizScreen
 import com.kai.woof.screen.quiz.QuizViewModel
+import com.kai.woof.screen.start.StartScreen
+import com.kai.woof.screen.start.StartViewModel
 import com.kai.woof.ui.theme.WoofTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class StartActivity : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,10 +32,10 @@ class StartActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = "start_screen",
                     enterTransition = {
-                        EnterTransition.None
+                        EnterTransition.Companion.None
                     },
                     exitTransition = {
-                        ExitTransition.None
+                        ExitTransition.Companion.None
                     }
                 ) {
                     composable("start_screen") {
@@ -58,4 +60,3 @@ class StartActivity : ComponentActivity() {
         }
     }
 }
-
