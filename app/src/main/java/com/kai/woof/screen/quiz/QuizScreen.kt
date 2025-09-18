@@ -53,9 +53,10 @@ fun QuizScreen(
     LaunchedEffect(quiz) {
         vm.setQuiz(quiz)
     }
-    
-    val question = vm.currentQuestion().collectAsState().value ?: return
-    val quizResult = vm.quizResult().collectAsState().value
+
+    val state = vm.uiState.collectAsState()
+    val question = state.value.currentQuestion ?: return
+    val quizResult = state.value.quizResult
 
     // Handle quiz completion
     LaunchedEffect(quizResult) {
@@ -105,8 +106,9 @@ private fun QuizView(
 
 @Composable
 private fun ChoiceList(list: List<BreedVariant>, vm: QuizViewModel) {
-    val correctBreed = vm.correctChoice().collectAsState()
-    val incorrectBreed = vm.incorrectChoice().collectAsState()
+    val state = vm.uiState.collectAsState()
+    val correctBreed = state.value.correctChoice
+    val incorrectBreed = state.value.incorrectChoice
 
     for (i in list) {
         val breed =
@@ -116,8 +118,8 @@ private fun ChoiceList(list: List<BreedVariant>, vm: QuizViewModel) {
         val name = if (subBreed != null) "$subBreed $breed" else breed
 
         Box(modifier = Modifier.padding(vertical = 8.dp)) {
-            val correct = correctBreed.value == i
-            val incorrect = incorrectBreed.value == i
+            val correct = correctBreed == i
+            val incorrect = incorrectBreed == i
             val backgroundColor by animateColorAsState(
                 targetValue = when {
                     correct -> green
@@ -151,7 +153,7 @@ private fun ChoiceList(list: List<BreedVariant>, vm: QuizViewModel) {
 
 @Composable
 private fun PageIndicator(vm: QuizViewModel) {
-    val pageIndicator = vm.pageIndicator().collectAsState()
+    val pageIndicator = vm.uiState.collectAsState().value.scoreList
     Row(
         Modifier
             .wrapContentHeight()
@@ -159,7 +161,7 @@ private fun PageIndicator(vm: QuizViewModel) {
             .padding(bottom = 8.dp),
         horizontalArrangement = Arrangement.Center,
     ) {
-        pageIndicator.value.map { result ->
+        pageIndicator.map { result ->
             val color = when (result) {
                 Result.Incorrect -> red
                 Result.Correct -> green

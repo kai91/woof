@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,23 +21,12 @@ import javax.inject.Inject
 class QuizViewModel @Inject constructor() : ViewModel() {
 
     private lateinit var quiz: Quiz
-    private lateinit var scoreList: List<Result>
-    private val currentQuestion = MutableStateFlow<Question?>(null)
-    private val pageIndicator = MutableStateFlow<List<Result>>(emptyList())
-    private val correctChoice = MutableStateFlow<BreedVariant?>(null)
-    private val incorrectChoice = MutableStateFlow<BreedVariant?>(null)
-    private val quizResult = MutableStateFlow<QuizResult?>(null)
+    private val _uiState = MutableStateFlow(QuizScreenState())
+
+    val uiState: StateFlow<QuizScreenState> = _uiState
     private var answered = false
     private var index = 0
     private var startTime: Long = 0
-
-    fun pageIndicator(): StateFlow<List<Result>> = pageIndicator
-    fun currentQuestion(): StateFlow<Question?> = currentQuestion
-
-    // Show ui to the user if the selected the correct answer
-    fun correctChoice(): StateFlow<BreedVariant?> = correctChoice
-    fun incorrectChoice(): StateFlow<BreedVariant?> = incorrectChoice
-    fun quizResult(): StateFlow<QuizResult?> = quizResult
 
     fun setQuiz(quiz: Quiz) {
         this.quiz = quiz
@@ -44,14 +34,18 @@ class QuizViewModel @Inject constructor() : ViewModel() {
         if (quiz.questionList.isEmpty()) {
             return
         }
-        viewModelScope.launch {
-            currentQuestion.emit(quiz.questionList.first())
-            // Init score list with default value of pending
-            scoreList = List(quiz.questionList.size) { Result.Pending }
-            scoreList = scoreList.toMutableList().apply {
-                this[0] = Result.Current
-            }
-            pageIndicator.emit(scoreList)
+
+        val currentQuestion = quiz.questionList.first()
+        // Init score list with default value of pending
+        var scoreList = List(quiz.questionList.size) { Result.Pending }
+        scoreList = scoreList.toMutableList().apply {
+            this[0] = Result.Current
+        }
+        _uiState.update {
+            it.copy(
+                currentQuestion = currentQuestion,
+                scoreList = scoreList,
+            )
         }
     }
 
@@ -60,24 +54,25 @@ class QuizViewModel @Inject constructor() : ViewModel() {
         if (answered) return
 
         answered = true
-        val question = currentQuestion.value ?: return
+        val question = _uiState.value.currentQuestion ?: return
 
         val isCorrect = question.dogPhoto.breedVariant == breedVariant
-        scoreList = scoreList.toMutableList().apply {
+        val scoreList = _uiState.value.scoreList.toMutableList().apply {
             this[index] = if (isCorrect) Result.Correct else Result.Incorrect
         }
-        viewModelScope.launch {
-            val scoreList = pageIndicator.value.toMutableList().apply {
-                this[index] = if (isCorrect) Result.Correct else Result.Incorrect
-            }
-            pageIndicator.emit(scoreList)
-            if (isCorrect) {
-                correctChoice.emit(breedVariant)
-            } else {
-                correctChoice.emit(question.dogPhoto.breedVariant)
-                incorrectChoice.emit(breedVariant)
-            }
 
+        val correctChoice = if (isCorrect) breedVariant else question.dogPhoto.breedVariant
+        val incorrectChoice = if (isCorrect) null else breedVariant
+        _uiState.update {
+            it.copy(
+                scoreList = scoreList,
+                correctChoice = correctChoice,
+                incorrectChoice = incorrectChoice
+            )
+        }
+
+        viewModelScope.launch {
+            // Delay for user to see the result
             delay(2000)
             moveToNextQuestion()
         }
@@ -91,11 +86,13 @@ class QuizViewModel @Inject constructor() : ViewModel() {
         if (index == quiz.questionList.size - 1) {
             // Quiz completed - emit result
             val timeTaken = System.currentTimeMillis() - startTime
-            val score = scoreList.count { it == Result.Correct }
+            val score = _uiState.value.scoreList.count { it == Result.Correct }
             val result = QuizResult(timeTaken, score, quiz.questionList.size)
 
-            viewModelScope.launch {
-                quizResult.emit(result)
+            _uiState.update {
+                it.copy(
+                    quizResult = result
+                )
             }
         } else {
             // clear previous selection
@@ -103,20 +100,30 @@ class QuizViewModel @Inject constructor() : ViewModel() {
 
             index++
             val nextQuestion = quiz.questionList[index]
-            scoreList = scoreList.toMutableList().apply {
+            val scoreList = _uiState.value.scoreList.toMutableList().apply {
                 this[index] = Result.Current
             }
-            viewModelScope.launch {
-                pageIndicator.emit(scoreList)
-                incorrectChoice.emit(null)
-                correctChoice.emit(null)
-                currentQuestion.emit(nextQuestion)
+            _uiState.update {
+                it.copy(
+                    scoreList = scoreList,
+                    incorrectChoice = null,
+                    correctChoice = null,
+                    currentQuestion = nextQuestion
+                )
             }
         }
 
     }
 
 }
+
+data class QuizScreenState(
+    val currentQuestion: Question? = null,
+    val scoreList: List<Result> = emptyList(),
+    val correctChoice: BreedVariant? = null,
+    val incorrectChoice: BreedVariant? = null,
+    val quizResult: QuizResult? = null,
+)
 
 enum class Result {
     Incorrect,
