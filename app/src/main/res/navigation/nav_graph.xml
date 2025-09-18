@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/start_screen">
+
+    <composable
+        android:id="@+id/start_screen"
+        android:name="com.kai.woof.screen.start.StartScreen"
+        android:label="Start Screen">
+        <argument
+            android:name="quizResult"
+            app:argType="com.kai.woof.model.QuizResult"
+            android:defaultValue="@null" />
+    </composable>
+
+    <composable
+        android:id="@+id/quiz_screen"
+        android:name="com.kai.woof.screen.quiz.QuizScreen"
+        android:label="Quiz Screen">
+        <argument
+            android:name="quiz"
+            app:argType="com.kai.woof.model.Quiz" />
+    </composable>
+
+</navigation>

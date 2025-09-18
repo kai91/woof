@@ -83,6 +83,12 @@ dependencies {
     // lottie
     implementation("com.airbnb.android:lottie-compose:6.6.6")
 
+    // vm in compose
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0-beta01")
+
+    // Navigation Compose
+    implementation(libs.androidx.navigation.compose)
+
     // Test dependencies
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")

@@ -51,6 +51,8 @@ class StartViewModel @Inject constructor(
     }
 
     fun setQuizResult(result: QuizResult) {
-        lastQuizResult.value = result
+        viewModelScope.launch {
+            lastQuizResult.emit(result)
+        }
     }
 }
