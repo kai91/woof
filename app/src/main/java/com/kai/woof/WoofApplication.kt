@@ -20,5 +20,10 @@ class WoofApplication : Application() {
         quizGenerator.initAsync()
         imageDownloader.clearTempPhotos()
     }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        quizGenerator.cleanUp()
+    }
 }
 

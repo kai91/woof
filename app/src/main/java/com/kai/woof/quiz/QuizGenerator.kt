@@ -1,15 +1,20 @@
 package com.kai.woof.quiz
 
+import com.kai.woof.di.DispatcherProvider
 import com.kai.woof.model.Breed
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.DogPhoto
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
 import com.kai.woof.repository.DogRepository
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -24,21 +29,27 @@ private const val QUIZ_SIZE = 5
  */
 @OptIn(DelicateCoroutinesApi::class)
 class QuizGenerator(
-    private val dogRepository: DogRepository
+    private val dogRepository: DogRepository,
+    private val dispatchers: DispatcherProvider,
 ) {
     private var completeBreedList: List<Breed>? = null
     private var completeVariantList: List<BreedVariant>? = null
     private val initMutex = Mutex()
+    private val job = SupervisorJob()
+    private val scope = CoroutineScope(dispatchers.io + job)
 
     /**
      *  Fetch full breed and sub-breed info for reference
      */
     @Synchronized
     fun initAsync() {
-        // It's ok to use GlobalScope since this is designed to be a Singleton
-        GlobalScope.launch {
-            runCatching { init() }
+        scope.launch {
+            init()
         }
+    }
+
+    fun cleanUp() {
+        scope.cancel()
     }
 
 

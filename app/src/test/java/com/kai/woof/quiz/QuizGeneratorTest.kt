@@ -1,9 +1,13 @@
 package com.kai.woof.quiz
 
+import com.kai.woof.di.DispatcherProvider
 import com.kai.woof.fake.FakeDogRepository
 import com.kai.woof.model.Breed
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.DogPhoto
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
@@ -14,6 +18,15 @@ class QuizGeneratorTest {
 
     private lateinit var quizGenerator: QuizGenerator
     private lateinit var dogRepository: FakeDogRepository
+
+    private val testDispatcher = StandardTestDispatcher()
+
+    private val testDispatcherProvider = object : DispatcherProvider {
+        override val main: CoroutineDispatcher = testDispatcher
+        override val default: CoroutineDispatcher = testDispatcher
+        override val io: CoroutineDispatcher = testDispatcher
+        override val unconfined: CoroutineDispatcher = testDispatcher
+    }
 
     val breeds: List<Breed> = ('a'..'o').map { letter ->
         Breed(letter.toString(), emptyList())
@@ -29,18 +42,20 @@ class QuizGeneratorTest {
         dogRepository = FakeDogRepository()
         dogRepository.breedList = breeds
         dogRepository.dogPhoto = dogPhotos
-        quizGenerator = QuizGenerator(dogRepository)
+        quizGenerator = QuizGenerator(dogRepository, testDispatcherProvider)
     }
 
     @Test
-    fun `even when init is called twice, only 1 api request is made`() {
+    fun `even when init is called twice, only 1 api request is made`() = runTest {
         // Given
         dogRepository.breedList = emptyList()
 
         // When
         quizGenerator.initAsync()
         quizGenerator.initAsync()
-        Thread.sleep(50)
+
+        // Advance time until all coroutines complete
+        testDispatcher.scheduler.advanceUntilIdle()
 
         // Then
         Assert.assertEquals(1, dogRepository.getCompleteBreedCalled)

@@ -28,8 +28,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideQuizGenerator(dogRepository: DogRepository): QuizGenerator {
-        return QuizGenerator(dogRepository)
+    fun provideQuizGenerator(
+        dogRepository: DogRepository,
+        dispatcherProvider: DispatcherProvider
+    ): QuizGenerator {
+        return QuizGenerator(dogRepository, dispatcherProvider)
     }
 
     @Provides
