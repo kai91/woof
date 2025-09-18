@@ -64,6 +64,9 @@ class QuizViewModel : ViewModel() {
             this[index] = if (isCorrect) Result.Correct else Result.Incorrect
         }
         viewModelScope.launch {
+            val scoreList = pageIndicator.value.toMutableList().apply {
+                this[index] = if (isCorrect) Result.Correct else Result.Incorrect
+            }
             pageIndicator.emit(scoreList)
             if (isCorrect) {
                 correctChoice.emit(breedVariant)
