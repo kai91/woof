@@ -2,6 +2,7 @@ package com.kai.woof.screen.quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kai.woof.di.DispatcherProvider
 import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.Question
 import com.kai.woof.model.Quiz
@@ -18,7 +19,9 @@ import javax.inject.Inject
  * Handle logic for scoring the quiz result
  */
 @HiltViewModel
-class QuizViewModel @Inject constructor() : ViewModel() {
+class QuizViewModel @Inject constructor(
+    private val dispatchers: DispatcherProvider,
+) : ViewModel() {
 
     private lateinit var quiz: Quiz
     private val _uiState = MutableStateFlow(QuizScreenState())
@@ -71,7 +74,7 @@ class QuizViewModel @Inject constructor() : ViewModel() {
             )
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.io) {
             // Delay for user to see the result
             delay(2000)
             moveToNextQuestion()

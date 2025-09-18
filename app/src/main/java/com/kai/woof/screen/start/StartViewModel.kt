@@ -27,7 +27,13 @@ class StartViewModel @Inject constructor(
     val uiState: StateFlow<StartScreenState> = _uiState
 
     fun generateQuiz() {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                quiz = null,
+                error = null,
+            )
+        }
         viewModelScope.launch(dispatchers.io) {
             val newQuiz = kotlin.runCatching {
                 quizGenerator.generateQuiz()

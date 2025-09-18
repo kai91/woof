@@ -7,7 +7,6 @@ import com.kai.woof.model.BreedVariant
 import com.kai.woof.model.DogPhoto
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Before
