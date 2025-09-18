@@ -41,14 +41,14 @@ class StartViewModelTest {
         viewModel.generateQuiz()
 
         // First verify loading is true
-        Assert.assertTrue(viewModel.isLoading().value)
+        Assert.assertTrue(viewModel.uiState.value.isLoading)
 
         // Advance time until all coroutines complete
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Now verify final state
-        Assert.assertEquals(mockQuiz, viewModel.quiz().value)
-        Assert.assertFalse(viewModel.isLoading().value)
+        Assert.assertEquals(mockQuiz, viewModel.uiState.value.quiz)
+        Assert.assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
@@ -61,13 +61,13 @@ class StartViewModelTest {
         viewModel.generateQuiz()
 
         // First verify loading is true
-        Assert.assertTrue(viewModel.isLoading().value)
+        Assert.assertTrue(viewModel.uiState.value.isLoading)
 
         // Advance time until all coroutines complete
         testDispatcher.scheduler.advanceUntilIdle()
 
         // Then verify final state
-        Assert.assertFalse(viewModel.isLoading().value)
+        Assert.assertFalse(viewModel.uiState.value.isLoading)
     }
 
     @Test
@@ -79,6 +79,6 @@ class StartViewModelTest {
         viewModel.setQuizResult(mockResult)
 
         // Then
-        Assert.assertEquals(mockResult, viewModel.lastQuizResult().value)
+        Assert.assertEquals(mockResult, viewModel.uiState.value.lastQuizResult)
     }
 } 

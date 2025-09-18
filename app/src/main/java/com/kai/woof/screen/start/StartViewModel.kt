@@ -20,39 +20,50 @@ class StartViewModel @Inject constructor(
     private val dispatchers: DispatcherProvider,
 ) : ViewModel() {
 
-    private val quiz = MutableStateFlow<Quiz?>(null)
-    private val isLoading = MutableStateFlow(false)
-    private val error = MutableSharedFlow<String>()
-    private val lastQuizResult = MutableStateFlow<QuizResult?>(null)
+//    private val quiz = MutableStateFlow<Quiz?>(null)
+//    private val isLoading = MutableStateFlow(false)
+//    private val error = MutableSharedFlow<String>()
+//    private val lastQuizResult = MutableStateFlow<QuizResult?>(null)
+    private val _uiState = MutableStateFlow(StartScreenState())
 
     /**
      * Expose states to ui to subscribe to
      */
-    fun quiz(): StateFlow<Quiz?> = quiz
-    fun isLoading(): StateFlow<Boolean> = isLoading
-    fun error(): SharedFlow<String> = error
-    fun lastQuizResult(): StateFlow<QuizResult?> = lastQuizResult
+    val uiState: StateFlow<StartScreenState> = _uiState
+//    fun quiz(): StateFlow<Quiz?> = quiz
+//    fun isLoading(): StateFlow<Boolean> = isLoading
+//    fun error(): SharedFlow<String> = error
+//    fun lastQuizResult(): StateFlow<QuizResult?> = lastQuizResult
 
     fun generateQuiz() {
-        isLoading.value = true
+        _uiState.value = _uiState.value.copy(isLoading = true)
         viewModelScope.launch(dispatchers.io) {
             val newQuiz = kotlin.runCatching {
                 quizGenerator.generateQuiz()
             }
 
             newQuiz.fold({ successResult ->
-                quiz.value = successResult
-                isLoading.value = false
+                _uiState.emit(_uiState.value.copy(
+                    quiz = successResult,
+                    isLoading = false
+                ))
             }, { exception ->
-                isLoading.value = false
-                error.emit(exception.message ?: "Puppies not found")
+                _uiState.emit(_uiState.value.copy(
+                    error = exception.message ?: "Puppies not found",
+                    isLoading = false
+                ))
             })
         }
     }
 
     fun setQuizResult(result: QuizResult) {
-        viewModelScope.launch {
-            lastQuizResult.emit(result)
-        }
+        _uiState.value = _uiState.value.copy(lastQuizResult = result)
     }
 }
+
+data class StartScreenState(
+    val quiz: Quiz? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val lastQuizResult: QuizResult? = null
+)

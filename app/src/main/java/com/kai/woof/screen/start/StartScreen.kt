@@ -39,7 +39,7 @@ fun StartScreen(
     navController: NavHostController,
     vm: StartViewModel,
 ) {
-    val isLoading = vm.isLoading().collectAsState()
+    val isLoading = vm.uiState.collectAsState().value.isLoading
     val snackbarHostState = remember { SnackbarHostState() }
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -60,8 +60,8 @@ fun StartScreen(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            if (isLoading.value) {
-                LoadingQuiz(isLoading)
+            if (isLoading) {
+                LoadingQuiz(true)
             } else {
                 Column {
                     Box(
@@ -82,20 +82,20 @@ fun StartScreen(
 fun ErrorSnackBar(vm: StartViewModel, snackbarHostState: SnackbarHostState) {
     // Collect error events as a one-time effect
     LaunchedEffect(Unit) {
-        vm.error().collect { errorMessage ->
-            snackbarHostState.showSnackbar(errorMessage)
+        vm.uiState.collect { uiState ->
+            uiState.error?.let { snackbarHostState.showSnackbar(it) }
         }
     }
 }
 
 @Composable
 fun StartButton(vm: StartViewModel, navController: NavHostController) {
-    val lastResult = vm.lastQuizResult().collectAsState()
+    val uiState = vm.uiState.collectAsState()
 
     // Observe quiz generation and navigate when quiz is ready
     LaunchedEffect(Unit) {
-        vm.quiz().collect { quiz ->
-            quiz?.let {
+        vm.uiState.collect { state ->
+            state.quiz?.let {
                 // Navigate to quiz screen with quiz data
                 navController.apply {
                     currentBackStackEntry?.savedStateHandle?.set("quiz", it)
@@ -108,8 +108,8 @@ fun StartButton(vm: StartViewModel, navController: NavHostController) {
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             // Show last quiz result if available
-            lastResult.value?.let { result ->
-                QuizResultDisplay(result)
+            uiState.value.lastQuizResult?.let { state ->
+                QuizResultDisplay(state)
                 Spacer(modifier = Modifier.padding(16.dp))
             }
 
@@ -161,8 +161,8 @@ fun QuizResultDisplay(result: QuizResult) {
 
 
 @Composable
-fun LoadingQuiz(isLoading: State<Boolean>) {
-    if (isLoading.value) {
+fun LoadingQuiz(isLoading: Boolean) {
+    if (isLoading) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
